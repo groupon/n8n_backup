@@ -1,0 +1,1083 @@
+{
+  "createdAt": "2025-05-29T07:23:48.357Z",
+  "updatedAt": "2025-07-01T08:49:41.000Z",
+  "id": "HTvLJKlOLfMUyJQJ",
+  "name": "Deal Analyzer - Gifting",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "PUT",
+        "path": "ffba1cae-2812-41b6-87dd-e5ae0f2e0457",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        -680
+      ],
+      "id": "c5d870d4-37af-4270-8363-283305248fa0",
+      "name": "Incoming Request",
+      "webhookId": "ffba1cae-2812-41b6-87dd-e5ae0f2e0457"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7a66fd6a-2f6d-45b1-93eb-62be0dbebb09",
+              "leftValue": "={{ $json.body.deal_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -200,
+        -680
+      ],
+      "id": "bc8cb4a3-f91a-48a1-889c-80ac14ba1d4a",
+      "name": "Valid Input"
+    },
+    {
+      "parameters": {
+        "url": "https://api.enc.groupon.com/ai-deals-analyzer/prompt",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        -800
+      ],
+      "id": "fe6ea616-a331-4e16-ab4f-4d2b0289cffc",
+      "name": "Get Prompt",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.enc.groupon.com/deal/{{ $json.country }}/{{ $json.deal_uuid }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"merchantTipsLimit\": \"\",\n    \"adSafe\": \"\",\n    \"show\": \"default,priceSummary, wideImageUrl, wishlists,traitSummary, urgencyMessages,uiTreatment,subtitle, supportsPass,salesforceId, says,specificAttributes, seodata,badges,bundles, merchant,collectible, externalDealProvider, dealOptionCount,badges,images,bundles,locations,division,descriptor, dealTypeMerchantPersona,categorizations,brand\"\n\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        -700
+      ],
+      "id": "4d951b1d-3fe8-4418-843e-11084c4c4659",
+      "name": "Get Deal",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        500,
+        -700
+      ],
+      "id": "f759b063-5d60-458b-9181-d120a516ef12",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn {\n  country: \"US\",\n  deal_uuid: $input.all()[0].json.body.deal_id\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -700
+      ],
+      "id": "c8fe387d-b32b-4ce7-9fd9-2faa18b97c45",
+      "name": "Simplify Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  prompt: $input.all()[0],\n  deal: $input.all()[1]\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -700
+      ],
+      "id": "83be3403-8361-471d-909b-93d8dd9184fd",
+      "name": "Consolidate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt.json.prompt }} "
+            },
+            {
+              "content": "={{ $json.prompt.json.system_prompt }}"
+            },
+            {
+              "content": "={{ $json.deal.json.toJsonString() }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        800,
+        -700
+      ],
+      "id": "9f40df6c-9696-4a70-928c-fc819b155993",
+      "name": "Analyze Deal",
+      "credentials": {
+        "openAiApi": {
+          "id": "Va3DkdDtCzAC9phq",
+          "name": "OpenAi account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450",
+          "mode": "list",
+          "cachedResultName": "Gifting Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DealOptionsAndPricing.qualityScore": "={{ $json.message.content.categories.DealOptionsAndPricing.qualityScore }}",
+            "DealOptionsAndPricing.qualityChange": "={{ $json.message.content.categories.DealOptionsAndPricing.qualityChange }}",
+            "DealOptionsAndPricing.comments": "={{ $json.message.content.categories.DealOptionsAndPricing.comments }}",
+            "DealTitlesAndShortDescription.qualityScore": "={{ $json.message.content.categories.DealTitlesAndShortDescription.qualityScore }}",
+            "DealTitlesAndShortDescription.qualityChange": "={{ $json.message.content.categories.DealTitlesAndShortDescription.qualityChange }}",
+            "DealTitlesAndShortDescription.comments": "={{ $json.message.content.categories.DealTitlesAndShortDescription.comments }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DealOptionsAndPricing.qualityScore",
+              "displayName": "DealOptionsAndPricing.qualityScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealOptionsAndPricing.qualityChange",
+              "displayName": "DealOptionsAndPricing.qualityChange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealOptionsAndPricing.comments",
+              "displayName": "DealOptionsAndPricing.comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.qualityScore",
+              "displayName": "DealTitlesAndShortDescription.qualityScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.qualityChange",
+              "displayName": "DealTitlesAndShortDescription.qualityChange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.comments",
+              "displayName": "DealTitlesAndShortDescription.comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1100,
+        -700
+      ],
+      "id": "5a6395f9-c002-43ea-bd10-e4593a4881f5",
+      "name": "Save To Sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "PUT",
+        "path": "ffba1cae-2812-41b6-87dd-e5ae0f2e0457",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        0
+      ],
+      "id": "928f6a84-b334-4ae5-95a5-97d78f2c0d15",
+      "name": "Incoming Request1",
+      "webhookId": "ffba1cae-2812-41b6-87dd-e5ae0f2e0457",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7a66fd6a-2f6d-45b1-93eb-62be0dbebb09",
+              "leftValue": "={{ $json.body.deal_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        60,
+        -20
+      ],
+      "id": "335fd72d-8a50-4b97-9a5e-da15ba308dfc",
+      "name": "Valid Input1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.enc.groupon.com/ai-deals-analyzer/prompt",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        -140
+      ],
+      "id": "4d02e886-f121-480e-8c27-f6e5df6d25cc",
+      "name": "Get Prompt1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.enc.groupon.com/deal/{{ $json.country }}/{{ $json.deal_uuid }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"merchantTipsLimit\": \"\",\n    \"adSafe\": \"\",\n    \"show\": \"default,priceSummary, wideImageUrl, wishlists,traitSummary, urgencyMessages,uiTreatment,subtitle, supportsPass,salesforceId, says,specificAttributes, seodata,badges,bundles, merchant,collectible, externalDealProvider, dealOptionCount,badges,images,bundles,locations,division,descriptor, dealTypeMerchantPersona,categorizations,brand\"\n\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -20
+      ],
+      "id": "e1cadcf5-b20f-4e0d-8470-142015e7d82b",
+      "name": "Get Deal1",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        760,
+        -20
+      ],
+      "id": "bc485973-4124-4548-872e-1f680d28632d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn {\n  country: \"US\",\n  deal_uuid: $input.all()[0].json.body.deal_id\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        -20
+      ],
+      "id": "79e1cef8-422e-48cd-a345-b63b7943171b",
+      "name": "Simplify Input1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  prompt: $input.all()[0],\n  deal: $input.all()[1]\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        -20
+      ],
+      "id": "9ba0061e-e319-4596-9a95-3ac1cacf135d",
+      "name": "Consolidate1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt.json.prompt }} "
+            },
+            {
+              "content": "={{ $json.prompt.json.system_prompt }}"
+            },
+            {
+              "content": "={{ $json.deal.json.toJsonString() }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1060,
+        -20
+      ],
+      "id": "f2e19cdf-6837-4d05-8f09-a17cd261602e",
+      "name": "Analyze Deal1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Va3DkdDtCzAC9phq",
+          "name": "OpenAi account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450",
+          "mode": "list",
+          "cachedResultName": "Gifting Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PRWi3N329CjnWYh2L8JNGSTOJJRUq-YTg-GgH0Uj450/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DealOptionsAndPricing.qualityScore": "={{ $json.message.content.categories.DealOptionsAndPricing.qualityScore }}",
+            "DealOptionsAndPricing.qualityChange": "={{ $json.message.content.categories.DealOptionsAndPricing.qualityChange }}",
+            "DealOptionsAndPricing.comments": "={{ $json.message.content.categories.DealOptionsAndPricing.comments }}",
+            "DealTitlesAndShortDescription.qualityScore": "={{ $json.message.content.categories.DealTitlesAndShortDescription.qualityScore }}",
+            "DealTitlesAndShortDescription.qualityChange": "={{ $json.message.content.categories.DealTitlesAndShortDescription.qualityChange }}",
+            "DealTitlesAndShortDescription.comments": "={{ $json.message.content.categories.DealTitlesAndShortDescription.comments }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DealOptionsAndPricing.qualityScore",
+              "displayName": "DealOptionsAndPricing.qualityScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealOptionsAndPricing.qualityChange",
+              "displayName": "DealOptionsAndPricing.qualityChange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealOptionsAndPricing.comments",
+              "displayName": "DealOptionsAndPricing.comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.qualityScore",
+              "displayName": "DealTitlesAndShortDescription.qualityScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.qualityChange",
+              "displayName": "DealTitlesAndShortDescription.qualityChange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DealTitlesAndShortDescription.comments",
+              "displayName": "DealTitlesAndShortDescription.comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1360,
+        -20
+      ],
+      "id": "f1bdf7c2-9b52-45b2-9cfc-5abc07f77239",
+      "name": "Save To Sheet1",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -280,
+        -380
+      ],
+      "id": "7ff83d0f-3d13-4ed0-ae1c-ec4fc06ad13c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.enc.groupon.com/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -460,
+        -380
+      ],
+      "id": "47eae0e5-39b4-48be-8b23-76089e7dfa60",
+      "name": "Log Input",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.enc.groupon.com/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        180
+      ],
+      "id": "20cb3bfd-29ff-4f28-be72-5d4dced71664",
+      "name": "Log result",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.enc.groupon.com/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        -380
+      ],
+      "id": "2fc577f6-ebd6-4a88-91f3-2955e0f0a57f",
+      "name": "Log Output",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ed7bed26-f10c-4027-869e-8b7210ebcb13",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -140,
+        -160
+      ],
+      "id": "4fba19d7-199d-4e67-bc3c-9674547341fa",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.enc.groupon.com/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"id\": \"684869762beae246b3099bac\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -200
+      ],
+      "id": "4c25a2ec-5be7-4136-b9f6-3770cae6dafe",
+      "name": "Escaled Faild",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        -200
+      ],
+      "id": "8f422f0c-84dd-4bcb-b350-24072ffec450",
+      "name": "Respond to Webhook as Fail"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        -380
+      ],
+      "id": "29fbe2cf-a234-48e2-8ded-860533cdb08b",
+      "name": "Respond to Webhook as success"
+    }
+  ],
+  "connections": {
+    "Incoming Request": {
+      "main": [
+        [
+          {
+            "node": "Valid Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Input": {
+      "main": [
+        [
+          {
+            "node": "Simplify Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deal": {
+      "main": [
+        [
+          {
+            "node": "Get Prompt",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Prompt": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simplify Input": {
+      "main": [
+        [
+          {
+            "node": "Get Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Consolidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidate": {
+      "main": [
+        [
+          {
+            "node": "Analyze Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Deal": {
+      "main": [
+        [
+          {
+            "node": "Save To Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incoming Request1": {
+      "main": [
+        [
+          {
+            "node": "Valid Input1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Input1": {
+      "main": [
+        [
+          {
+            "node": "Simplify Input1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prompt1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deal1": {
+      "main": [
+        [
+          {
+            "node": "Get Prompt1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Consolidate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simplify Input1": {
+      "main": [
+        [
+          {
+            "node": "Get Deal1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidate1": {
+      "main": [
+        [
+          {
+            "node": "Analyze Deal1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Deal1": {
+      "main": [
+        [
+          {
+            "node": "Save To Sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Log Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save To Sheet1": {
+      "main": [
+        [
+          {
+            "node": "Log result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Input": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log result": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook as success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Escaled Faild",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Valid Input1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escaled Faild": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook as Fail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "e87eb62e-0684-41f0-ba2b-7cf18290c784",
+  "triggerCount": 0,
+  "tags": []
+}
