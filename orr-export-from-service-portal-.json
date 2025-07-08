@@ -1,0 +1,842 @@
+{
+  "createdAt": "2025-04-08T09:57:17.901Z",
+  "updatedAt": "2025-04-10T08:30:08.000Z",
+  "id": "L3kAnlwnU8tNhz2R",
+  "name": "ORR Export from service portal",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://edge-proxy--production--default.prod.us-central1.gcp.groupondev.com/api/v2/service_attributes/orr_score/changes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_at",
+              "value": "={{ $json.start_date }}"
+            },
+            {
+              "name": "end_at",
+              "value": "={{ $json.end_date }}"
+            },
+            {
+              "name": "per_page",
+              "value": "125"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Host",
+              "value": "service-portal.production.service"
+            },
+            {
+              "name": "g-hb-upstream-service-portal",
+              "value": "us-central1--default--conveyor-gcp-production2"
+            },
+            {
+              "name": "GRPN-Client-ID",
+              "value": "jarvis"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        20
+      ],
+      "id": "158216db-285f-4886-be55-f1990cbbf332",
+      "name": "Get ORR records",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        20
+      ],
+      "id": "e094e9b9-deb9-4110-9a8a-94ce5dc2aae3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nfunction getYesterdayDateString() {\n  const yesterday = new Date();\n  yesterday.setDate(yesterday.getDate() - 1);\n\n  const year = yesterday.getFullYear();\n  const month = String(yesterday.getMonth() + 1).padStart(2, '0');\n  const day = String(yesterday.getDate()).padStart(2, '0');\n\n  return `${year}-${month}-${day}`;\n}\n\nfunction getTodayDateString() {\n  const yesterday = new Date();\n  yesterday.setDate(yesterday.getDate());\n\n  const year = yesterday.getFullYear();\n  const month = String(yesterday.getMonth() + 1).padStart(2, '0');\n  const day = String(yesterday.getDate()).padStart(2, '0');\n\n  return `${year}-${month}-${day}`;\n}\n\nreturn {\n  start_date: getYesterdayDateString(),\n  end_date: getTodayDateString()\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        20
+      ],
+      "id": "fa4854da-6622-4e18-a189-89325047b126",
+      "name": "Create Date"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\n$input.all()[0].json.data.forEach(entry => {\n  entry.time = entry.time.replace(\"T\", \" \").replace(\"Z\", \"\");\n});\n\nif($input.all()[0].json.data.length > 0) {\n  return  $input.all()[0].json.data;\n} else {\n  console.log(\"Empty Array\");\n  return [];\n}\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        20
+      ],
+      "id": "bbc3f9e2-dec7-4966-b5d4-8769896cdc09",
+      "name": "To Array",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit?gid=236812032#gid=236812032",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 236812032,
+          "mode": "list",
+          "cachedResultName": "ORR Score Change Report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit#gid=236812032"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "author"
+          ],
+          "schema": [
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner",
+              "displayName": "owner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tier",
+              "displayName": "Tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "new_value",
+              "displayName": "new_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "previous_value",
+              "displayName": "previous_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        360,
+        -180
+      ],
+      "id": "793b8f27-4ccd-4c37-9df4-36c93ec593e2",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nfunction formatDateToYYYYMMDD(date) {\n  const year = date.getFullYear();\n  const month = String(date.getMonth() + 1).padStart(2, '0'); // měsíce jsou 0-indexované\n  const day = String(date.getDate()).padStart(2, '0');\n  return `${year}-${month}-${day}`;\n}\n\n// Příklad použití:\nconst today = new Date();\nconst formatted = formatDateToYYYYMMDD(today);\nconsole.log(formatted); // např. \"2025-04-10\"\n\n\nreturn  {\n  \"key\": \"Last data update:\",\n  \"value\": formatDateToYYYYMMDD(today)\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        180
+      ],
+      "id": "52c7cfe8-fa1b-4257-9ff3-5077840d9429",
+      "name": "Create Time stamp"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU",
+          "mode": "list",
+          "cachedResultName": "ORR Report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 638201126,
+          "mode": "list",
+          "cachedResultName": "ReadMe",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit#gid=638201126"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "key": "={{ $json.key }}",
+            "value": "={{ $json.value }}"
+          },
+          "matchingColumns": [
+            "key"
+          ],
+          "schema": [
+            {
+              "id": "key",
+              "displayName": "key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        140,
+        220
+      ],
+      "id": "164488e1-e511-4d66-ba37-2d2f3c50eb0b",
+      "name": "Update Readme Section with time",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e272496a-8b82-440e-ba08-ad6a38655779",
+              "leftValue": "={{ $json.values() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -60
+      ],
+      "id": "9da896db-05c5-4efb-9144-2ff4e18a96e1",
+      "name": "Not empty"
+    },
+    {
+      "parameters": {
+        "url": "https://edge-proxy--production--default.prod.us-central1.gcp.groupondev.com/api/v2/service_attributes/orr_score/changes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_at",
+              "value": "=2025-04-08"
+            },
+            {
+              "name": "end_at",
+              "value": "=2025-04-09"
+            },
+            {
+              "name": "per_page",
+              "value": "125"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Host",
+              "value": "service-portal.production.service"
+            },
+            {
+              "name": "g-hb-upstream-service-portal",
+              "value": "us-central1--default--conveyor-gcp-production2"
+            },
+            {
+              "name": "GRPN-Client-ID",
+              "value": "jarvis"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -520,
+        -480
+      ],
+      "id": "3896b5f4-c203-42d0-9ad0-c98148ca3ea5",
+      "name": "Get ORR records1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nconsole.log(\"Run\");\n$input.all()[0].json.data.forEach(entry => {\n  entry.time = entry.time.replace(\"T\", \" \").replace(\"Z\", \"\");\n});\n\nif($input.all()[0].json.data.length > 0) {\n  return  $input.all()[0].json.data;\n} else {\n  console.log(\"Empty Array\");\n  return [];\n}\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -480
+      ],
+      "id": "cb01c29b-68d4-4644-bae6-4a3e54683e20",
+      "name": "Test Array",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -420
+      ],
+      "id": "76d97844-f53c-435a-bd49-915488bcba05",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit?gid=236812032#gid=236812032",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 236812032,
+          "mode": "list",
+          "cachedResultName": "ORR Score Change Report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XiKcy9Ff5w9LI0vRJFHDmvwz4BGSpMM1Zww0nClHiwU/edit#gid=236812032"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "author"
+          ],
+          "schema": [
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner",
+              "displayName": "owner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner_name",
+              "displayName": "owner_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "l5_director",
+              "displayName": "l5_director",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "l6_director",
+              "displayName": "l6_director",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "l7_director",
+              "displayName": "l7_director",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "l8_director",
+              "displayName": "l8_director",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tier",
+              "displayName": "Tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "new_value",
+              "displayName": "new_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "previous_value",
+              "displayName": "previous_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "delta_time",
+              "displayName": "delta_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "delta_time_h",
+              "displayName": "delta_time_h",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -120,
+        -480
+      ],
+      "id": "ecd9a260-4311-4976-a1c3-a90bbf4f0636",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Manualy Add - what is missing - Change date inside GET ORR\n",
+        "height": 360,
+        "width": 1060
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -860,
+        -540
+      ],
+      "id": "1493feb0-80f4-4e30-87f6-d812b161e290",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn {\n  my_list: $input.all(),\n  something_interesting: \"nothing\"\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        20
+      ],
+      "id": "bda6370b-1737-49c5-85ed-a367387e6073",
+      "name": "From List - one operation"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbxJroim9IeUF_daR7soGClN3Y7IicVKK5FSKEz-XvH-6jDu1RhaSgAcw6C5uVtS6EAj/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"array\": []\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        580,
+        20
+      ],
+      "id": "d6a45fbe-be6b-438d-82e4-2b33744ca3f5",
+      "name": "Ping Worksheet to update"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbxJroim9IeUF_daR7soGClN3Y7IicVKK5FSKEz-XvH-6jDu1RhaSgAcw6C5uVtS6EAj/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"array\": []\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -520,
+        -300
+      ],
+      "id": "35d01125-ae42-4756-8892-d10970939343",
+      "name": "Ping Worksheet to update1"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Date": {
+      "main": [
+        [
+          {
+            "node": "Get ORR records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ORR records": {
+      "main": [
+        [
+          {
+            "node": "To Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To Array": {
+      "main": [
+        [
+          {
+            "node": "Create Time stamp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Not empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        []
+      ]
+    },
+    "Create Time stamp": {
+      "main": [
+        [
+          {
+            "node": "Update Readme Section with time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not empty": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "From List - one operation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ORR records1": {
+      "main": [
+        [
+          {
+            "node": "Test Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get ORR records1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ping Worksheet to update1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Array": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "From List - one operation": {
+      "main": [
+        [
+          {
+            "node": "Ping Worksheet to update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ping Worksheet to update": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "dd0d4897-1b04-42b1-a075-54074e78b6c1",
+  "triggerCount": 1,
+  "tags": []
+}
