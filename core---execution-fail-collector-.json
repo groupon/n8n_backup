@@ -1,0 +1,254 @@
+{
+  "createdAt": "2025-07-08T15:48:55.333Z",
+  "updatedAt": "2025-07-14T07:47:55.000Z",
+  "id": "Du5SnwpsmjsvViEU",
+  "name": "Core - Execution Fail Collector",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "d4dc5505-6e2f-4aa0-921d-f7d451ddb1e5",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -160,
+        140
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "resource": "execution",
+        "limit": 200,
+        "filters": {
+          "status": "error"
+        },
+        "options": {
+          "activeWorkflows": false
+        },
+        "requestOptions": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "ae45864b-3857-47a4-8549-772eb0403933",
+      "name": "Retrieve workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        60,
+        140
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "4KOKpaFhIcRCcIHF",
+          "name": "N8N - Tomas Zaruba"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve and process workflows from n8n",
+        "height": 380,
+        "width": 260,
+        "color": 3
+      },
+      "id": "169b7a3b-ea95-4dbb-b56f-d5b554939b6d",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Update List of Workflows in Google Spreadsheet",
+        "height": 380,
+        "width": 420,
+        "color": 4
+      },
+      "id": "fbe75916-61ca-4eec-a890-3209c12bbeea",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE",
+          "mode": "list",
+          "cachedResultName": "Automation Overview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1140548076,
+          "mode": "list",
+          "cachedResultName": "Error Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE/edit#gid=1140548076"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "finished": "={{ $json.finished }}",
+            "mode": "={{ $json.mode }}",
+            "retryOf": "={{ $json.retryOf }}",
+            "retrySuccessId": "={{ $json.retrySuccessId }}",
+            "startedAt": "={{ $json.startedAt.replace('Z', '') }}",
+            "stoppedAt": "={{ $json.stoppedAt.replace('Z', '') }}",
+            "workflowId": "={{ $json.workflowId }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "finished",
+              "displayName": "finished",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "retryOf",
+              "displayName": "retryOf",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "retrySuccessId",
+              "displayName": "retrySuccessId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "startedAt",
+              "displayName": "startedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stoppedAt",
+              "displayName": "stoppedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflowId",
+              "displayName": "workflowId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        140
+      ],
+      "id": "d42a5f65-ba63-4f99-a366-331d6c9af49c",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google GCP - Tomas Zaruba"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Retrieve workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve workflows": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "37eb0698-c817-4a24-a67c-6f4e977c67b0",
+  "triggerCount": 1,
+  "tags": []
+}
