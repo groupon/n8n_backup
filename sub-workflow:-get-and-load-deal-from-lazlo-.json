@@ -1,0 +1,508 @@
+{
+  "createdAt": "2025-07-28T14:08:49.103Z",
+  "updatedAt": "2025-07-28T14:51:02.000Z",
+  "id": "COcj8G7r431fKeHk",
+  "name": "Sub-workflow: Get and Load Deal from Lazlo",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7a66fd6a-2f6d-45b1-93eb-62be0dbebb09",
+              "leftValue": "={{ $json.body_deal_id  }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dc6c4ab8-0269-40f1-98e0-85dc8933d4ef",
+              "leftValue": "={{ $json.body_deal_url  }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d4151d7c-f799-47dc-8327-c9b89aca4bae",
+              "leftValue": "={{ $json.query_deal_url  }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ab4249ba-f56c-42f0-a214-90248cc22b97",
+              "leftValue": "={{ $json.query_deal_id  }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dad7ee31-a251-4928-b806-40302567e42c",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        208
+      ],
+      "id": "bfa413ce-1ba5-4cf1-a7be-ffd4e66443c5",
+      "name": "Valid Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\n\nif($input.all()[0].json.body_deal_id) {\n  return {\n      country: \"US\",\n      deal_uuid: $input.all()[0].json.body_deal_id\n  }\n} else if($input.all()[0].json.body_deal_url) {\n  return {\n     deal_url: $input.all()[0].json.body_deal_url\n  }\n} else if($input.all()[0].json.query_deal_id) {\n  return {\n      country: \"US\",\n      deal_uuid: $input.all()[0].json.query_deal_id\n  }\n} else if($input.all()[0].json.query_deal_url) {\n    return {\n     deal_url: $input.all()[0].json.query_deal_url\n  }\n\n// Test case  \n} else {\n   return {\n     deal_url: \"https://www.groupon.com/deals/regal-cinemas-premiere-ticket-2023\"\n  }\n}\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "01af9e8a-8697-4682-b72f-65ff539c817c",
+      "name": "Simplify Input"
+    },
+    {
+      "parameters": {
+        "content": "## Input - Valid Incoming Request\n**Its required that we have Valid incoming JSON with \"deal_id\", or \"deal_url\"**",
+        "height": 480,
+        "width": 900
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        80
+      ],
+      "id": "86992345-4eec-4487-b5e8-537f2ad18ca1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.deal_uuid }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "c3987a37-264c-4659-98cd-25719c6a8fcf"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "By ID"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ac4dfb15-2024-41fd-9099-ccae5c6bf8a1",
+                    "leftValue": "={{ $json.deal_url }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "By URL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        144,
+        192
+      ],
+      "id": "d06e29a6-f614-47ac-b502-149dd5fd066d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nconst link =  $input.all()[0].json.deal_url;\n\n\nlet country = \"US\"\n\nif(link.includes(\"groupon.com\")) {\n  // Do nothing\n} else if(link.includes(\"groupon.fr\")) {\n  country = \"FR\"\n}\n\n\n\nreturn {\n  country: country,\n  deal_uuid: $input.all()[1].json.dealUid\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        608
+      ],
+      "id": "4f88ba09-eab3-4783-a7df-3e76bc1d3842",
+      "name": "Transform again in ID and country"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.enc.groupon.com/deal/resolve-deal-identifier",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dealIdentifier",
+              "value": "={{ $json.deal_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        784
+      ],
+      "id": "a13d9862-9a04-4fa3-9770-8c82b86b0a67",
+      "name": "Translate URL to ID",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Just exception if we have no ID but only URL",
+        "height": 548,
+        "width": 700,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        416
+      ],
+      "id": "ad1ae800-a0de-49dd-95d6-a498ce278307",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        592
+      ],
+      "id": "f3c51f26-91e5-4485-b12f-a1144ce6f11a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "## Download Deal and Dowlnload Prompt Template\nBy **ID**  and **Prompt** by hardcoded Name in block from our public https://prompts.groupondev.com/prompt/deal-evaluation-for-gifting-criteria",
+        "height": 740,
+        "width": 644,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        48
+      ],
+      "id": "176d606e-9db8-45c1-bb68-62dab1018a91",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.enc.groupon.com/deal/{{ $json.country }}/{{ $json.deal_uuid }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "{\n    \"merchantTipsLimit\": \"\",\n    \"adSafe\": \"\",\n    \"show\": \"default,priceSummary, wideImageUrl, wishlists,traitSummary, urgencyMessages,uiTreatment,subtitle, supportsPass,salesforceId, says,specificAttributes, seodata,badges,bundles, merchant,collectible, externalDealProvider, dealOptionCount,badges,images,bundles,locations,division,descriptor, dealTypeMerchantPersona,categorizations,brand\"\n\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        176
+      ],
+      "id": "79ac99db-4264-4d07-aa95-3d76de4e10c4",
+      "name": "Get Deal - Lazlo",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "SyVamv2PXERtT1Dv",
+          "name": "Custom Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "Ei0qPt9m4DnRyhqb",
+          "name": "Encore  Backend - Production"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst deal = $input.all()[0].json.deal;\n\n// Clean expensive content\ndeal.categorizations = [];\ndeal.dealTypeMerchantPersona = [];\n\n\ndeal.options.forEach((o) => {\n  o.redemptionLocations = [];\n});\n\nreturn {\n  deal: deal\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        176
+      ],
+      "id": "b2191e53-cb58-481d-a0a8-5f8205e1dc18",
+      "name": "remove trash"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $input.all()[0].json }} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2224,
+        176
+      ],
+      "id": "8dac54da-5569-451f-a61c-0ddfff6bb657",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "body_deal_id"
+            },
+            {
+              "name": "body_deal_url"
+            },
+            {
+              "name": "query_deal_url"
+            },
+            {
+              "name": "query_deal_id"
+            }
+          ]
+        }
+      },
+      "id": "1c109e16-0085-427a-8415-16608e5b0cb4",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -736,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eb7bcf3f-dffc-450e-bd6c-6bbfaa71f3ff",
+              "name": "error",
+              "value": "invalid input",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        368
+      ],
+      "id": "a1b30c8c-a51d-49c0-a28d-70111814a723",
+      "name": "Return1"
+    }
+  ],
+  "connections": {
+    "Valid Input": {
+      "main": [
+        [
+          {
+            "node": "Simplify Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Simplify Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simplify Input": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Deal - Lazlo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Translate URL to ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform again in ID and country": {
+      "main": [
+        [
+          {
+            "node": "Get Deal - Lazlo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Translate URL to ID": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Transform again in ID and country",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deal - Lazlo": {
+      "main": [
+        [
+          {
+            "node": "remove trash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Valid Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "remove trash": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "942eb7b5-57c2-4d6d-9887-bf0e535cff7f",
+  "triggerCount": 0,
+  "tags": []
+}
