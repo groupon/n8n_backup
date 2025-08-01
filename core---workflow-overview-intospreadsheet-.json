@@ -1,0 +1,232 @@
+{
+  "createdAt": "2025-07-08T15:26:10.590Z",
+  "updatedAt": "2025-07-22T15:38:15.000Z",
+  "id": "HtMSK9TMJFjUuOq7",
+  "name": "Core - Workflow overview intoSpreadsheet",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "a6123a95-9220-49e3-9104-74fec1310dbf",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        120,
+        140
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "eedd6668-bc77-47dc-b4ef-9e1234ebb0e0",
+      "name": "Retrieve workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        340,
+        140
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "4KOKpaFhIcRCcIHF",
+          "name": "N8N - Tomas Zaruba"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve and process workflows from n8n",
+        "height": 380,
+        "width": 260,
+        "color": 3
+      },
+      "id": "67698dec-06a4-4506-8d02-dfb48fd6df4e",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        280,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Update List of Workflows in Google Spreadsheet",
+        "height": 380,
+        "width": 420,
+        "color": 4
+      },
+      "id": "ba7d17d0-a61a-491c-9980-4dd0ab3ad1f3",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE",
+          "mode": "list",
+          "cachedResultName": "Automation Overview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Overview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CggmpbxW6gvbqd2z2LIRmhwR2m0aaC2vxCbqXp9cXlE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.id }}",
+            "Automation": "={{ $json.name }}",
+            "Active": "={{ $json.active }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Automation",
+              "displayName": "Automation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Active",
+              "displayName": "Active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Escalation",
+              "displayName": "Escalation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        720,
+        140
+      ],
+      "id": "073517a6-15cd-4bfc-8105-f27a9a9169c5",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "1LNggPqqwgGQc0R1",
+          "name": "Google GCP - Tomas Zaruba"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Retrieve workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve workflows": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "f0c4f6a3-28bb-4c93-bb1c-dc1fdcfcf737",
+  "triggerCount": 1,
+  "tags": []
+}
